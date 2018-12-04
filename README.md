@@ -68,8 +68,24 @@ they give a reasonable hint as to what the command is doing.
 
 ## Initializing the ELM327
 
-The ELM327 is connected to over a serial port.  It is a good idea to issue a reset followed by enabling echoing and
-line feeds to give a decent interactive text experience
+Most ELM327 devices are bluetooth serial ports.  Later versions of the Linux bluez package (5.44?)  [deprecated the
+`rfcomm`
+program](https://unix.stackexchange.com/questions/352494/alternative-to-the-now-deprecated-rfcomm-binary-in-bluez)
+wihout providing a replacement.  Fortunately the original source code still exists in bluez and can be re-enabled
+by passing the `--enable-deprecated` flag to `configure`.  Here is an overlay for that does this for Nix
+```nix
+self: super: with self; {
+  bluez5 = super.bluez5.overrideAttrs (attrs: {
+    configureFlags = attrs.configureFlags or [] ++ [
+      "--enable-deprecated"
+    ];
+  } );
+}
+```
+
+After reinstalling bluez, the ELM327 can be connected to by using `bluetoothctl` to connect to the device, `rfcomm`
+to assoicate it with a */dev/rfcommX* device, and `screen` to talk to */dev/rfcommX*.  It is a good idea to issue a
+reset followed by enabling echoing and line feeds to give a decent interactive text experience
 ```
 > ATZ
 > ATL1
